@@ -39,11 +39,3 @@
       (let ([instr (first instr-list)])
         (define new-st (exec instr st))
         (interpret (rest instr-list) new-st))))
-
-; tests
-(define instr (list add 2))
-(exec instr st) ; 1379
-(define instr-list (list
-                      (list add 2)
-                      (list add 3)))
-(interpret instr-list st) ; 1382
