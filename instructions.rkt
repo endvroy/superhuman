@@ -3,6 +3,12 @@
 (require racket/list)
 (require racket/base)
 
+(provide add)
+(provide sub)
+(provide copyfrom)
+(provide copyto)
+(provide outbox)
+
 (struct state (reg mem output) #:transparent)
 
 (define (add loc st)
