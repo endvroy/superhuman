@@ -1,13 +1,14 @@
 #lang s-exp rosette/safe
 
-(require racket/list)
-(require racket/base)
+(require racket/list
+         racket/base)
 
-(provide add)
-(provide sub)
-(provide copyfrom)
-(provide copyto)
-(provide outbox)
+(provide add
+         sub
+         copyfrom
+         copyto
+         outbox
+         (struct-out state))
 
 (struct state (reg mem output) #:transparent)
 
@@ -15,7 +16,7 @@
   (let* ([reg (state-reg st)]
          [mem (state-mem st)]
          [output (state-output st)]
-         [x (list-ref mem loc)])
+         [x (vector-ref mem loc)])
     (cond
       [(null? reg) (reg-err)]
       [(null? x) (mem-err loc)]
@@ -25,7 +26,7 @@
   (let* ([reg (state-reg st)]
          [mem (state-mem st)]
          [output (state-output st)]
-         [x (list-ref mem loc)])
+         [x (vector-ref mem loc)])
     (cond
       [(null? reg) (reg-err)]
       [(null? x) (mem-err loc)]
@@ -34,7 +35,7 @@
 (define (copyfrom loc st)
   (let* ([mem (state-mem st)]
          [output (state-output st)]
-         [x (list-ref mem loc)])
+         [x (vector-ref mem loc)])
     (if (null? x)
         (mem-err loc)
         (state x mem output))))
