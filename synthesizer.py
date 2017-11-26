@@ -1,37 +1,52 @@
 import instructions
+import itertools
+from collections import namedtuple
+from collections import defaultdict
+
 from state import State
+from linetuple import LineTuple
 
-def enumerateInsts(st, instSet, k):
-    if k == 0:
-        return [[]]
+beamState = namedtuple("beamState", "lineInst, backptr, score")
 
-    insts_k = []
-    for inst in instSet:
-        argType = instructions.instArgsMap[inst]
-        params = [[st]]
-        # check register status is useReg is True
-        if argType.useReg and st.reg is None:
-            continue
-        for t in argType.argList:
-            if t == 'l': # memory access
-                # check all memory locations
-                validLocs = []
-                for i in range(len(st.mem)):
-                    if st.mem[i] is None:
-                        # bypass invalid mem read
-                        continue
-                    validLocs.append(i)
-                params = [ a + [b] for a in params for b in validLocs]
-        for p in params:
-            insts_k.append((inst, p))
+def scoreInstruction(state, target):
+    # Linear combination of 
+    return []
 
-    res = []
-    for (inst, params) in insts_k:
-        a = enumerateInsts(inst(*params), instSet, k-1);
-        res += [ [(inst, params)] + tail for tail in a ]
-    return res
+def enumerateInstruction(state, instructions, lastLine, target):
+    lineInsts = []
+    if state.mem is not None:
+        validMemIndex = []
+        for i in range(len(state.mem)):
+            if state.mem[i] is not None:
+                validMemIndex.append(i)
+                lineInsts.append(LineTuple("outbox", state, loc=i))
+        rawLineInsts = list(itertools.product(instructions, validMemIndex, validMemIndex, range(len(state.mem))))
+        for line in rawLineInsts:
+            lineInsts.append(LineTuple(line[0], state, line[1], line[2], line[3]))
+    stateTupleList = []
+    for inst in lineInsts:
+        stateTupleList.append(beamState(inst, lastLine, scoreInstruction(inst, target)))
+
+
+def enumerateNextInstruction(line, instructions, target):
+    state = line.state
+    return enumerateInstruction(state, instructions, line, target)
+
+def pruneStack(stack):
+    return []
+
+def beam(beginst, lineLimit, pruneLimit):
+    # Key: current 
+    stacks = [[] for _ in range(lineLimit+1)]
+
+
+
 
 if __name__ == '__main__':
-    st = State(None, 1, [2, None, 3], [])
-    instSet = [instructions.add, instructions.sub, instructions.copyTo, instructions.copyFrom, instructions.outbox]
-    print enumerateInsts(st, instSet, 2)
+    st = State(None, [2, None, 3], [])
+    # instSet = [instructions.add, instructions.sub, instructions.outbox]
+    instSet = ["add", "sub"]
+    result = enumerateInstruction(st, instSet)
+    for entry in result:
+        print entry
+    # print enumerateInsts(st, instSet, 2)

@@ -29,7 +29,10 @@ class LineTuple(object):
     
     def __str__(self):
         # return str(self.reg) + ' ' + str(self.mem) + ' ' + str(self.output)
-        return self.operator + ' ' + str(self.state) + ' ' + str(self.copyFrom) + ' ' + str(self.loc) + ' ' + str(self.copyTo)
+        if self.operator is not "outbox":
+            return self.operator + ' ' + str(self.copyFrom) + ' ' + str(self.loc) + ' ' + str(self.copyTo)  + ' ' + str(self.state)
+        else:
+            return self.operator + ' ' + str(self.loc)  + ' ' + str(self.state)
 
     def __repr__(self):
         return str(self)
