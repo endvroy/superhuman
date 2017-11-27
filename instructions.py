@@ -1,14 +1,14 @@
 # define instructions used in Human Resource Machine Game
 from state import State
-from enum import Enum
 import copy
+
 
 def add(st, copyFrom, loc, copyTo):
     # if st.reg is None:
     #     raise ValueError('invalid read on null reg')
-    if 0 < loc > len(st.mem) or loc < 0 or st.mem[loc] == None:
+    if 0 < loc > len(st.mem) or loc < 0 or st.mem[loc] is None:
         raise ValueError('invalid mem read at loc: ' + str(loc))
-    if 0 < copyFrom > len(st.mem) or st.mem[copyFrom] == None:
+    if 0 < copyFrom > len(st.mem) or st.mem[copyFrom] is None:
         raise ValueError('invalid mem read at loc: ' + str(loc))
     if 0 < copyTo > len(st.mem):
         raise ValueError('invalid mem read at loc: ' + str(loc))
@@ -16,18 +16,20 @@ def add(st, copyFrom, loc, copyTo):
     newMem[copyTo] = newMem[copyFrom] + newMem[loc]
     return State(None, newMem, copy.deepcopy(st.output))
 
+
 def sub(st, copyFrom, loc, copyTo):
     # if st.reg is None:
     #     raise ValueError('invalid read on null reg')
-    if 0 < loc > len(st.mem) or loc < 0 or st.mem[loc] == None:
+    if 0 < loc > len(st.mem) or loc < 0 or st.mem[loc] is None:
         raise ValueError('invalid mem read at loc: ' + str(loc))
-    if 0 < copyFrom > len(st.mem) or st.mem[copyFrom] == None:
+    if 0 < copyFrom > len(st.mem) or st.mem[copyFrom] is None:
         raise ValueError('invalid mem read at loc: ' + str(loc))
     if 0 < copyTo > len(st.mem):
         raise ValueError('invalid mem read at loc: ' + str(loc))
     newMem = copy.deepcopy(st.mem)
     newMem[copyTo] = newMem[copyFrom] - newMem[loc]
     return State(None, newMem, copy.deepcopy(st.output))
+
 
 # def copyFrom(st, loc):
 #     if 0 > loc > len(st.mem):
@@ -48,11 +50,12 @@ def sub(st, copyFrom, loc, copyTo):
 def outbox(st, loc):
     # if st.reg is None:
     #     raise ValueError('invalid read on null reg')
-    if 0 < loc > len(st.mem) or st.mem[loc] == None:
-        raise ValueError('invalid mem read at loc: ' + str(loc)) 
+    if 0 < loc > len(st.mem) or st.mem[loc] is None:
+        raise ValueError('invalid mem read at loc: ' + str(loc))
     newSt = State(st)
     newSt.output.append(st.mem[loc])
     return newSt
+
 
 # class ArgType(object):
 #     def __init__(self, useReg=False, argList=[]):
@@ -75,14 +78,14 @@ def outbox(st, loc):
 
 if __name__ == '__main__':
     st = State(None, [2, 3, 4], [])
-    print st
+    print(st)
     st = add(st, 0, 2, 1)
-    print st
+    print(st)
     st = sub(st, 0, 1, 2)
-    print st
+    print(st)
     st = outbox(st, 2)
-    print st
+    print(st)
     st = outbox(st, 1)
-    print st
+    print(st)
     st = outbox(st, 0)
-    print st
+    print(st)
