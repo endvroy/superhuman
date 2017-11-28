@@ -1,7 +1,6 @@
 import itertools
 import os
 from collections import namedtuple
-
 from state import State
 from linetuple import LineTuple
 
@@ -81,9 +80,11 @@ def beam(beginst, instSet, target, lineLimit, pruneLimit):
         pruneStack(stacks[i], target)
         printStack(stacks[i])
 
+    return stacks
+
 
 if __name__ == '__main__':
-    st = State(None, [2, None, 3], [])
+    st = State([2, None, 3], [])
     # instSet = [instructions.add, instructions.sub, instructions.outbox]
     instSet = ["add", "sub"]
     result = beam(st, instSet, [2, 5], 2, 2)

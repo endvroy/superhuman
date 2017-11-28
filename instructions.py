@@ -1,6 +1,5 @@
 # define instructions used in Human Resource Machine Game
 from state import State
-import copy
 
 
 def add(st, copyFrom, loc, copyTo):
@@ -12,9 +11,9 @@ def add(st, copyFrom, loc, copyTo):
         raise ValueError('invalid mem read at loc: ' + str(loc))
     if 0 < copyTo > len(st.mem):
         raise ValueError('invalid mem read at loc: ' + str(loc))
-    newMem = copy.deepcopy(st.mem)
+    newMem = st.mem.copy()
     newMem[copyTo] = newMem[copyFrom] + newMem[loc]
-    return State(None, newMem, copy.deepcopy(st.output))
+    return State(newMem, st.output.copy())
 
 
 def sub(st, copyFrom, loc, copyTo):
@@ -26,9 +25,9 @@ def sub(st, copyFrom, loc, copyTo):
         raise ValueError('invalid mem read at loc: ' + str(loc))
     if 0 < copyTo > len(st.mem):
         raise ValueError('invalid mem read at loc: ' + str(loc))
-    newMem = copy.deepcopy(st.mem)
+    newMem = st.mem.copy()
     newMem[copyTo] = newMem[copyFrom] - newMem[loc]
-    return State(None, newMem, copy.deepcopy(st.output))
+    return State(newMem, st.output.copy())
 
 
 # def copyFrom(st, loc):
@@ -52,7 +51,7 @@ def outbox(st, loc):
     #     raise ValueError('invalid read on null reg')
     if 0 < loc > len(st.mem) or st.mem[loc] is None:
         raise ValueError('invalid mem read at loc: ' + str(loc))
-    newSt = State(st)
+    newSt = st.copy()
     newSt.output.append(st.mem[loc])
     return newSt
 
@@ -77,7 +76,7 @@ def outbox(st, loc):
 
 
 if __name__ == '__main__':
-    st = State(None, [2, 3, 4], [])
+    st = State([2, 3, 4], [])
     print(st)
     st = add(st, 0, 2, 1)
     print(st)

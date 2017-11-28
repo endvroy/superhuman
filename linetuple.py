@@ -39,7 +39,7 @@ class LineTuple(object):
 
 
 if __name__ == "__main__":
-    st = State(None, [2, 3, 4], [])
+    st = State([2, 3, 4], [])
     print(st)
     line1 = LineTuple("add", st, 0, 2, 1)
     st = line1.getState()
