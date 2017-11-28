@@ -1,0 +1,32 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+ArgType	../instructions.py	/^class ArgType(object):$/;"	kind:class	line:43
+State	../state.py	/^class State(object):$/;"	kind:class	line:3
+__init__	../instructions.py	/^    def __init__(self, useReg=False, argList=[]):$/;"	kind:member	line:44
+__init__	../state.py	/^    def __init__(self, st=None, reg=None, mem=[], output=[]):$/;"	kind:member	line:5
+__repr__	../instructions.py	/^    def __repr__(self):$/;"	kind:member	line:49
+__repr__	../state.py	/^    def __repr__(self):$/;"	kind:member	line:18
+__str__	../instructions.py	/^    def __str__(self):$/;"	kind:member	line:47
+__str__	../state.py	/^    def __str__(self):$/;"	kind:member	line:15
+add	../instructions.py	/^def add(st, loc):$/;"	kind:function	line:6
+copyFrom	../instructions.py	/^def copyFrom(st, loc):$/;"	kind:function	line:20
+copyTo	../instructions.py	/^def copyTo(st, loc):$/;"	kind:function	line:27
+enumerateInsts	../synthesizer.py	/^def enumerateInsts(st, instSet, k):$/;"	kind:function	line:4
+instArgsMap	../instructions.py	/^instArgsMap = {$/;"	kind:variable	line:53
+instSet	../synthesizer.py	/^    instSet = [instructions.add, instructions.sub, instructions.copyTo, instructions.copyFrom, instructions.outbox]$/;"	kind:variable	line:36
+instructions.py	../instructions.py	1;"	kind:file	line:1
+interpreter.py	../interpreter.py	1;"	kind:file	line:1
+outbox	../instructions.py	/^def outbox(st):$/;"	kind:function	line:36
+st	../instructions.py	/^    st = State(None, 1, [2, 3, 4], [])$/;"	kind:variable	line:63
+st	../instructions.py	/^    st = add(0, st)$/;"	kind:variable	line:65
+st	../instructions.py	/^    st = copyFrom(2, st)$/;"	kind:variable	line:67
+st	../instructions.py	/^    st = outbox(st)$/;"	kind:variable	line:71
+st	../instructions.py	/^    st = sub(2, st)$/;"	kind:variable	line:69
+st	../synthesizer.py	/^    st = State(None, 1, [2, None, 3], [])$/;"	kind:variable	line:35
+state.py	../state.py	1;"	kind:file	line:1
+sub	../instructions.py	/^def sub(st, loc):$/;"	kind:function	line:13
+synthesizer.py	../synthesizer.py	1;"	kind:file	line:1
