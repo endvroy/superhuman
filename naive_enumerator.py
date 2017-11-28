@@ -32,6 +32,6 @@ def enumerateInsts(st, instSet, k):
     return res
 
 if __name__ == '__main__':
-    st = State(None, 1, [2, None, 3], [])
+    st = State(1, [2, None, 3], [])
     instSet = [instructions.add, instructions.sub, instructions.copyTo, instructions.copyFrom, instructions.outbox]
-    print enumerateInsts(st, instSet, 2)
+    print enumerateInsts(st, instSet, 5)
