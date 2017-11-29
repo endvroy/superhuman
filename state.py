@@ -2,7 +2,7 @@ from copy import deepcopy
 
 class State(object):
     """State defines a state of the Human Resource Machine"""
-    def __init__(self, st=None, mem=[], output=[]):
+    def __init__(self, st=None, mem=None, output=None):
         if st:
             # self.reg = st.reg
             self.mem = deepcopy(st.mem)

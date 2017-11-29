@@ -69,9 +69,9 @@ def pruneStack(stack, target):
     # arithmetic
 
 def printStack(stack):
-    for state in stack["outbox"]:
+    for state in stack["outbox"].values():
         print '-', state
-    for state in stack["arith"]:
+    for state in stack["arith"].values():
         print '-', state
     print '\n'
 
@@ -80,7 +80,7 @@ def extractInst(beamstate):
 
 def beam(beginst, instSet, target, lineLimit, pruneLimit):
     # Key: current 
-    stacks = [{"outbox": [], "arith": []} for _ in range(lineLimit)]
+    stacks = [{"outbox": {}, "arith": {}} for _ in range(lineLimit)]
 
     enumInst = enumerateInstruction(beginst, instSet, None, target)
     pruneStack(enumInst, target)
@@ -90,22 +90,25 @@ def beam(beginst, instSet, target, lineLimit, pruneLimit):
     # stacks[0]["arith"] = enumInst["arith"]
     for state in enumInst["outbox"]:
         if state.order < lineLimit:
-            stacks[state.order]["outbox"].append(state)
+            if repr((state.lineInst.state.mem, state.lineInst.state.output)) not in stacks[state.order]["outbox"]: 
+                stacks[state.order]["outbox"][repr((state.lineInst.state.mem, state.lineInst.state.output))] = state
     for state in enumInst["arith"]:
         if state.order < lineLimit:
-            stacks[state.order]["arith"].append(state)
+            if repr((state.lineInst.state.mem, state.lineInst.state.output)) not in stacks[state.order]["arith"]: 
+                stacks[state.order]["arith"][repr((state.lineInst.state.mem, state.lineInst.state.output))] = state
 
-    for i in range(lineLimit-1):
-        
-        for state in stacks[i]["outbox"] + stacks[i]["arith"]:
+    for i in range(lineLimit-1):       
+        for state in stacks[i]["outbox"].values() + stacks[i]["arith"].values():
             enumInst = enumerateNextInstruction(state, instSet, target)
             pruneStack(enumInst, target)
             for newstate in enumInst["outbox"]:
                 if newstate.order < lineLimit:
-                    stacks[newstate.order]["outbox"].append(newstate)
+                    if repr((newstate.lineInst.state.mem, newstate.lineInst.state.output)) not in stacks[newstate.order]["outbox"]: 
+                        stacks[newstate.order]["outbox"][repr((newstate.lineInst.state.mem, newstate.lineInst.state.output))] = newstate
             for newstate in enumInst["arith"]:
                 if newstate.order < lineLimit:
-                    stacks[newstate.order]["arith"].append(newstate)
+                    if repr((newstate.lineInst.state.mem, newstate.lineInst.state.output)) not in stacks[newstate.order]["arith"]: 
+                        stacks[newstate.order]["arith"][repr((newstate.lineInst.state.mem, newstate.lineInst.state.output))] = newstate
             # Evaluate 
         # printStack(stacks[i+1])
     for i, stack in enumerate(stacks):
@@ -115,7 +118,7 @@ def beam(beginst, instSet, target, lineLimit, pruneLimit):
     while len(stacks[i]["outbox"]) == 0:
         i -= 1
     insts = []
-    for state in stacks[i]["outbox"]:
+    for state in stacks[i]["outbox"].values():
         insts.append(extractInst(state))
     return insts
 
@@ -123,7 +126,7 @@ if __name__ == '__main__':
     st = State(None, [2, None, 3], [])
     # instSet = [instructions.add, instructions.sub, instructions.outbox]
     instSet = ["add", "sub"]
-    result = beam(st, instSet, [2,5], 7, 2)
+    result = beam(st, instSet, [2,5,3], 11, 2)
     print 'test:'
     for entry in result:
         print entry

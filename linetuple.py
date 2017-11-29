@@ -7,9 +7,10 @@ class LineTuple(object):
     # A LineTuple object represents a line of code
     # A LineTuple should be like "operator op1 op2 op3"
     # op1 = CopyFrom, op2 = loc op3 = CopyTo
-    def __init__(self, operator=None, state=None, copyFrom=-1, loc=0, copyTo=-1):
+    def __init__(self, operator=None, state=None, copyFrom=0, loc=-1, copyTo=-1):
         if operator==None or state == None:
             raise ValueError('Empty operator or state')
+        self.hasNext = False
         self.operator = operator
         self.copyFrom = copyFrom
         self.loc = loc
@@ -20,7 +21,7 @@ class LineTuple(object):
         elif operator == "sub":
             self.state = op.sub(state, copyFrom, loc, copyTo)
         elif operator == "outbox":
-            self.state = op.outbox(state, loc)
+            self.state = op.outbox(state, copyFrom)
         else:
             raise ValueError("Invalid operator: " + operator)
 
@@ -30,9 +31,9 @@ class LineTuple(object):
     def __str__(self):
         # return str(self.reg) + ' ' + str(self.mem) + ' ' + str(self.output)
         if self.operator is not "outbox":
-            return self.operator + ' ' + str(self.copyFrom) + ' ' + str(self.loc) + ' ' + str(self.copyTo)  + ' ' + str(self.state)
+            return str(self.hasNext) + ' ' + self.operator + ' ' + str(self.copyFrom) + ' ' + str(self.loc) + ' ' + str(self.copyTo)  + ' ' + str(self.state)
         else:
-            return self.operator + ' ' + str(self.loc)  + ' ' + str(self.state)
+            return str(self.hasNext) + ' ' + self.operator + ' ' + str(self.copyFrom)  + ' ' + str(self.state)
 
     def __repr__(self):
         return str(self)
