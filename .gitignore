@@ -5,3 +5,5 @@ compiled/
 *.pyc
 \.vscode
 \.idea
+
+\.DS_Store
