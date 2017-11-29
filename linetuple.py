@@ -28,6 +28,16 @@ class LineTuple:
     def getState(self):
         return self.state
 
+    def getInstWithArgs():
+        if operator == "add":
+            return (op.add, [self.copyFrom, self.loc, self.copyTo])
+        elif operator == "sub":
+            return (op.sub, [self.copyFrom, self.loc, self.copyTo])
+        elif operator == "outbox":
+            return (op.outbox, [self.copyFrom])
+        else:
+            raise ValueError("Invalid operator: " + operator)
+
     def __str__(self):
         # return str(self.reg) + ' ' + str(self.mem) + ' ' + str(self.output)
         if self.operator is not "outbox":
