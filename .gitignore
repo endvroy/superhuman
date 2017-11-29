@@ -4,3 +4,4 @@ test.rkt
 compiled/
 *.pyc
 \.vscode
+\.idea
