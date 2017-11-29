@@ -6,11 +6,11 @@ from enum import Enum
 def add(st, copyFrom, loc, copyTo):
     # if st.reg is None:
     #     raise ValueError('invalid read on null reg')
-    if 0 < loc > len(st.mem) or loc < 0 or st.mem[loc] is None:
+    if 0 > loc > len(st.mem) or loc < 0 or st.mem[loc] is None:
         raise ValueError('invalid mem read at loc: ' + str(loc))
-    if 0 < copyFrom > len(st.mem) or st.mem[copyFrom] is None:
+    if 0 > copyFrom > len(st.mem) or st.mem[copyFrom] is None:
         raise ValueError('invalid mem read at loc: ' + str(loc))
-    if 0 < copyTo > len(st.mem):
+    if 0 > copyTo > len(st.mem):
         raise ValueError('invalid mem read at loc: ' + str(loc))
     newMem = st.mem.copy()
     newMem[copyTo] = newMem[copyFrom] + newMem[loc]
@@ -20,11 +20,11 @@ def add(st, copyFrom, loc, copyTo):
 def sub(st, copyFrom, loc, copyTo):
     # if st.reg is None:
     #     raise ValueError('invalid read on null reg')
-    if 0 < loc > len(st.mem) or loc < 0 or st.mem[loc] is None:
+    if 0 > loc > len(st.mem) or loc < 0 or st.mem[loc] is None:
         raise ValueError('invalid mem read at loc: ' + str(loc))
-    if 0 < copyFrom > len(st.mem) or st.mem[copyFrom] is None:
+    if 0 > copyFrom > len(st.mem) or st.mem[copyFrom] is None:
         raise ValueError('invalid mem read at loc: ' + str(loc))
-    if 0 < copyTo > len(st.mem):
+    if 0 > copyTo > len(st.mem):
         raise ValueError('invalid mem read at loc: ' + str(loc))
     newMem = st.mem.copy()
     newMem[copyTo] = newMem[copyFrom] - newMem[loc]
