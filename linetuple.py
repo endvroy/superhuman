@@ -3,7 +3,7 @@ from enum import Enum
 import instructions as op
 
 
-class LineTuple(object):
+class LineTuple:
     # A LineTuple object represents a line of code
     # A LineTuple should be like "operator op1 op2 op3"
     # op1 = CopyFrom, op2 = loc op3 = CopyTo

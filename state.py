@@ -1,4 +1,4 @@
-class State(object):
+class State:
     """State defines a state of the Human Resource Machine"""
 
     def __init__(self, mem=None, output=None):

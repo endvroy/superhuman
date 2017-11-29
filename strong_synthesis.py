@@ -106,7 +106,7 @@ def beam(beginst, instSet, target, lineLimit, pruneLimit):
                 stacks[state.order]["arith"][repr((state.lineInst.state.mem, state.lineInst.state.output))] = state
 
     for i in range(lineLimit - 1):
-        for state in stacks[i]["outbox"].values() + stacks[i]["arith"].values():
+        for state in itertools.chain(stacks[i]["outbox"].values(), list(stacks[i]["arith"].values())):
             enumInst = enumerateNextInstruction(state, instSet, target)
             pruneStack(enumInst, target)
             for newstate in enumInst["outbox"]:
@@ -139,7 +139,7 @@ if __name__ == '__main__':
     st = State([2, None, 3], [])
     # instSet = [instructions.add, instructions.sub, instructions.outbox]
     instSet = ["add", "sub"]
-    result = beam(st, instSet, [2, 5, 3], 11, 2)
+    result = beam(st, instSet, [2, 5, 3], 7, 2)
     print('test:')
     for entry in result:
         print(entry)
