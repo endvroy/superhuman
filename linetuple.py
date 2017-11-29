@@ -36,7 +36,7 @@ class LineTuple:
         elif self.operator == "outbox":
             return op.outbox, [self.copyFrom]
         else:
-            raise ValueError("Invalid operator: " + operator)
+            raise ValueError("Invalid operator: " + self.operator)
 
     def __str__(self):
         # return str(self.reg) + ' ' + str(self.mem) + ' ' + str(self.output)
