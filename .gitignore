@@ -3,3 +3,4 @@ test.rkt
 \#*\#
 compiled/
 *.pyc
+\.vscode

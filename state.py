@@ -1,16 +1,16 @@
-from copy import deepcopy
-
 class State(object):
     """State defines a state of the Human Resource Machine"""
-    def __init__(self, st=None, mem=None, output=None):
-        if st:
-            # self.reg = st.reg
-            self.mem = deepcopy(st.mem)
-            self.output = deepcopy(st.output)
-        else:
-            # self.reg = reg
-            self.mem = mem
-            self.output = output
+
+    def __init__(self, mem=None, output=None):
+        if mem is None:
+            mem = []
+        if output is None:
+            output = []
+        self.mem = list(mem)
+        self.output = list(output)
+
+    def copy(self):
+        return State(self.mem, self.output)
 
     def __str__(self):
         # return str(self.reg) + ' ' + str(self.mem) + ' ' + str(self.output)
