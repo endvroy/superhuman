@@ -12,7 +12,6 @@ def stackSearch(initial_st, instSet, depth, output):
     for i, stack in enumerate(stacks[:-1]):
          for state in stack.keys():
              for newSt, inst, args in generate_insts(state, instSet, output):
-                 #print newSt, inst, args
                  newBeamSt = BeamState(newSt, inst, args, stack[state])
                  if newSt in stacks[i+1]:
                      stacks[i+1][newSt].append(newBeamSt)
@@ -23,9 +22,7 @@ def stackSearch(initial_st, instSet, depth, output):
     for st, final_states in stacks[-1].items():
         if st.output != output:
             continue
-        print st.output, output
         for final_st in final_states:
-            #print final_st.st
             candidates += extractInsts(final_st)
     return candidates
 
@@ -41,15 +38,15 @@ def extractInsts(b_st):
 
 # inst generators
 def generate_add(st, output):
-    if st.reg.val:
+    if not st.reg.is_empty():
         for loc in range(len(st.mem)):
-            if st.mem[loc].val:
+            if not st.mem[loc].is_empty():
                 yield (instructions.add(st, loc), [loc])
 
 def generate_sub(st, output):
-    if st.reg.val:
+    if not st.reg.is_empty():
         for loc in range(len(st.mem)):
-            if st.mem[loc].val:
+            if not st.mem[loc].is_empty():
                 yield (instructions.sub(st, loc), [loc])
 
 def generate_inbox(st, output):
@@ -57,21 +54,21 @@ def generate_inbox(st, output):
         yield (instructions.inbox(st), [])
 
 def generate_outbox(st, output):
-    if st.reg.val and len(st.output) < len(output):
+    if not st.reg.is_empty() and len(st.output) < len(output):
         if st.reg.val == output[len(st.output)]:
             yield (instructions.outbox(st), [])
 
 def generate_copyTo(st, output):
-    if st.reg.val:
+    if not st.reg.is_empty():
         for loc in range(len(st.mem)):
             # only copy to used loc
-            if not st.mem[loc].val or st.mem[loc].used:
+            if st.mem[loc].is_empty() or st.mem[loc].used:
                 yield (instructions.copyTo(st, loc), [loc])
 
 def generate_copyFrom(st, output):
-    if not st.reg.val or st.reg.used:
+    if st.reg.is_empty() or st.reg.used:
         for loc in range(len(st.mem)):
-            if st.mem[loc].val:
+            if not st.mem[loc].is_empty():
                 yield (instructions.copyFrom(st, loc), [loc])
 
 inst_generator_map = {
@@ -88,16 +85,3 @@ def generate_insts(st, instSet, output):
         generator = inst_generator_map[inst]
         for newSt, args in generator(st, output):
             yield (newSt, inst, args)
-
-
-if __name__ == '__main__':
-    st = State((23,32), None, Cell.cell_array([None]), ())
-    instSet = [instructions.inbox, instructions.outbox, instructions.add, instructions.sub, instructions.copyTo, instructions.copyFrom]
-
-    for insts in stackSearch(st, instSet, 5, (55,)):
-        print map(lambda (i, args) : (i.__name__, args), insts)
-        st = State((23,32), None, Cell.cell_array([None]), ())
-        for inst, args in insts:
-            print st
-            st = inst(*([st]+args))
-        print st

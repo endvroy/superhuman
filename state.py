@@ -11,11 +11,17 @@ class Cell(object):
         self.used = False
         self.val = other.val
 
+    def is_empty(self):
+        return self.val is None
+
     # operators
     def __add__(self, other):
         self.used = True
         other.used = True
         return Cell(self.val+other.val)
+
+    def __radd__(self, other):
+        return self.val == other
 
     def __sub__(self, other):
         self.used = True
@@ -35,8 +41,6 @@ class Cell(object):
 
     @staticmethod
     def copy(c):
-        if not c:
-            return Cell(None)
         return Cell(c.val, c.used)
 
     def __str__(self):
@@ -56,8 +60,8 @@ class State(object):
             self.input = st.input
             self.output = st.output
         else:
-            self.reg = Cell.copy(reg)
-            self.mem = mem
+            self.reg = Cell(reg)
+            self.mem = Cell.cell_array(mem)
             self.input = Input
             self.output = output
 
@@ -76,12 +80,3 @@ class State(object):
 
     def __repr__(self):
         return str(self)
-
-
-if __name__ == '__main__':
-    st = State((1), None, Cell.cell_array([2, 3, 4]), ())
-    newSt = State(st=st)
-
-    d = {}
-    d[st] = 1
-    print newSt in d
