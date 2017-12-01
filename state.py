@@ -1,5 +1,6 @@
 from collections import namedtuple
 
+
 class Cell(object):
     def __init__(self, val, used=False):
         self.val = val
@@ -15,12 +16,12 @@ class Cell(object):
     def __add__(self, other):
         self.used = True
         other.used = True
-        return Cell(self.val+other.val)
+        return Cell(self.val + other.val)
 
     def __sub__(self, other):
         self.used = True
         other.used = True
-        return Cell(self.val-other.val)
+        return Cell(self.val - other.val)
 
     def __eq__(self, other):
         return self.val == other.val
@@ -47,8 +48,10 @@ class Cell(object):
     def __repr__(self):
         return str(self)
 
+
 class State(object):
     """State defines a state of the Human Resource Machine"""
+
     def __init__(self, Input=None, reg=None, mem=None, output=None, st=None):
         if st:
             self.reg = Cell.copy(st.reg)
@@ -66,7 +69,7 @@ class State(object):
 
     def __eq__(self, other):
         return self.reg == other.reg and self.input == other.input \
-            and self.mem == other.mem and self.output == other.output
+               and self.mem == other.mem and self.output == other.output
 
     def __ne__(self, other):
         return not (self == other)
@@ -79,9 +82,8 @@ class State(object):
 
 
 if __name__ == '__main__':
-    st = State((1), None, Cell.cell_array([2, 3, 4]), ())
+    st = State((1), None, Cell.cell_array([2, 3, 4]), ())  # todo: bug?
     newSt = State(st=st)
 
-    d = {}
-    d[st] = 1
-    print newSt in d
+    d = {st: 1}
+    print(newSt in d)
