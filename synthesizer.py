@@ -1,3 +1,4 @@
+import sys
 import instructions
 from collections import namedtuple
 from state import State
@@ -10,13 +11,14 @@ def stackSearch(initial_st, instSet, depth, output):
     stacks[0][initial_st] = [BeamState(initial_st, None, None, None)]
 
     for i, stack in enumerate(stacks[:-1]):
-         for state in stack.keys():
-             for newSt, inst, args in generate_insts(state, instSet, output):
-                 newBeamSt = BeamState(newSt, inst, args, stack[state])
-                 if newSt in stacks[i+1]:
-                     stacks[i+1][newSt].append(newBeamSt)
-                 else:
-                     stacks[i+1][newSt] = [newBeamSt]
+        sys.stderr.write("search depth : %d/%d, len = %d\n" % (i, depth, len(stack)))
+        for state in stack.keys():
+            for newSt, inst, args in generate_insts(state, instSet, output):
+                newBeamSt = BeamState(newSt, inst, args, stack[state])
+                if newSt in stacks[i+1]:
+                    stacks[i+1][newSt].append(newBeamSt)
+                else:
+                    stacks[i+1][newSt] = [newBeamSt]
 
     candidates = []
     for st, final_states in stacks[-1].items():
@@ -27,14 +29,12 @@ def stackSearch(initial_st, instSet, depth, output):
     return candidates
 
 def extractInsts(b_st):
-    if not b_st.inst:
-        return [[]]
-
-    res = []
-    for pred in b_st.preds:
-        res += [ insts + [(b_st.inst, b_st.args)] for insts in extractInsts(pred) ]
-    return res
-
+    if not b_st.preds:
+        yield []
+    else:
+        for pred in b_st.preds:
+            for insts in extractInsts(pred):
+                yield insts + [(b_st.inst, b_st.args)]
 
 # inst generators
 def generate_add(st, output):
@@ -60,10 +60,17 @@ def generate_outbox(st, output):
 
 def generate_copyTo(st, output):
     if not st.reg.is_empty():
+        empty_slot_used = False
         for loc in range(len(st.mem)):
-            # only copy to used loc
-            if st.mem[loc].is_empty() or st.mem[loc].used:
-                yield (instructions.copyTo(st, loc), [loc])
+            if st.mem[loc].is_empty():
+                # only copy to first empty slot
+                if empty_slot_used:
+                    break
+                empty_slot_used = True
+            elif not st.mem[loc].used:
+                # only copy to used loc
+                continue
+            yield (instructions.copyTo(st, loc), [loc])
 
 def generate_copyFrom(st, output):
     if st.reg.is_empty() or st.reg.used:
