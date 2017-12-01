@@ -4,3 +4,7 @@ test.rkt
 compiled/
 *.pyc
 demo.py
+
+\.idea/
+
+\.DS_Store
