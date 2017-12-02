@@ -1,8 +1,7 @@
 import sys
 import instructions
 from collections import namedtuple
-from state import State
-from state import Cell
+from state import State, Cell
 
 BeamState = namedtuple('BeamState', 'st, inst, args, preds')
 
