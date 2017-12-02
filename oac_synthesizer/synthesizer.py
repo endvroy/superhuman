@@ -1,8 +1,7 @@
 import sys
 import instructions
 from collections import namedtuple
-from state import State
-from state import Cell
+from state import State, Cell
 
 BeamState = namedtuple('BeamState', 'st, inst, args, preds')
 
@@ -21,13 +20,12 @@ def stackSearch(initial_st, instSet, depth, output):
                 else:
                     stacks[i+1][newSt] = [newBeamSt]
 
-    candidates = []
     for st, final_states in stacks[-1].items():
         if st.output != output:
             continue
         for final_st in final_states:
-            candidates += extractInsts(final_st)
-    return candidates
+            for candidate in extractInsts(final_st):
+                yield candidate
 
 
 def extractInsts(b_st):

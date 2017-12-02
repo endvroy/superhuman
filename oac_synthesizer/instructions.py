@@ -1,8 +1,6 @@
 # define instructions used in Human Resource Machine Game
-from state import State
-from state import Cell
 from enum import Enum
-import copy
+from state import State, Cell
 
 
 def add(st, loc):
