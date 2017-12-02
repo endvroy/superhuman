@@ -6,8 +6,9 @@ from state import Cell
 
 BeamState = namedtuple('BeamState', 'st, inst, args, preds')
 
+
 def stackSearch(initial_st, instSet, depth, output):
-    stacks = [{} for _ in range(depth+1)]
+    stacks = [{} for _ in range(depth + 1)]
     stacks[0][initial_st] = [BeamState(initial_st, None, None, None)]
 
     for i, stack in enumerate(stacks[:-1]):
@@ -28,6 +29,7 @@ def stackSearch(initial_st, instSet, depth, output):
             candidates += extractInsts(final_st)
     return candidates
 
+
 def extractInsts(b_st):
     if not b_st.preds:
         yield []
@@ -43,20 +45,24 @@ def generate_add(st, output):
             if not st.mem[loc].is_empty():
                 yield (instructions.add(st, loc), [loc])
 
+
 def generate_sub(st, output):
     if not st.reg.is_empty():
         for loc in range(len(st.mem)):
             if not st.mem[loc].is_empty():
                 yield (instructions.sub(st, loc), [loc])
 
+
 def generate_inbox(st, output):
     if st.input:
         yield (instructions.inbox(st), [])
+
 
 def generate_outbox(st, output):
     if not st.reg.is_empty() and len(st.output) < len(output):
         if st.reg.val == output[len(st.output)]:
             yield (instructions.outbox(st), [])
+
 
 def generate_copyTo(st, output):
     if not st.reg.is_empty():
@@ -72,20 +78,23 @@ def generate_copyTo(st, output):
                 continue
             yield (instructions.copyTo(st, loc), [loc])
 
+
 def generate_copyFrom(st, output):
     if st.reg.is_empty() or st.reg.used:
         for loc in range(len(st.mem)):
             if not st.mem[loc].is_empty():
                 yield (instructions.copyFrom(st, loc), [loc])
 
+
 inst_generator_map = {
-    instructions.add : generate_add,
-    instructions.sub : generate_sub,
-    instructions.copyTo : generate_copyTo,
-    instructions.copyFrom : generate_copyFrom,
-    instructions.inbox : generate_inbox,
-    instructions.outbox : generate_outbox
+    instructions.add: generate_add,
+    instructions.sub: generate_sub,
+    instructions.copyTo: generate_copyTo,
+    instructions.copyFrom: generate_copyFrom,
+    instructions.inbox: generate_inbox,
+    instructions.outbox: generate_outbox
 }
+
 
 def generate_insts(st, instSet, output):
     for inst in instSet:

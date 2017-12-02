@@ -4,6 +4,7 @@ from state import Cell
 from enum import Enum
 import copy
 
+
 def add(st, loc):
     if st.reg.is_empty():
         raise ValueError('invalid read on null reg')
@@ -12,6 +13,7 @@ def add(st, loc):
     newSt = State(st=st)
     newSt.reg = newSt.reg + newSt.mem[loc]
     return newSt
+
 
 def sub(st, loc):
     if st.reg.is_empty():
@@ -22,12 +24,14 @@ def sub(st, loc):
     newSt.reg = newSt.reg - newSt.mem[loc]
     return newSt
 
+
 def copyFrom(st, loc):
     if 0 > loc > len(st.mem) or st.mem[loc].is_empty():
         raise ValueError('invalid mem read at loc: ' + str(loc))
     newSt = State(st=st)
     newSt.reg.copyFrom(newSt.mem[loc])
     return newSt
+
 
 def copyTo(st, loc):
     if st.reg.is_empty():
@@ -37,6 +41,7 @@ def copyTo(st, loc):
     newSt = State(st=st)
     newSt.mem[loc].copyFrom(newSt.reg)
     return newSt
+
 
 def inbox(st):
     if not st.input:
