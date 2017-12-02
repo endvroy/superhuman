@@ -45,7 +45,6 @@ def inbox(st):
     newSt.input, newSt.reg = st.input[1:], Cell(st.input[0])
     return newSt
 
-
 def outbox(st):
     if st.reg.is_empty():
         raise ValueError('invalid read on null reg')
@@ -53,3 +52,25 @@ def outbox(st):
     newSt.output += (st.reg.val,)
     newSt.reg.used = True
     return newSt
+
+# jump instructions used in the synthesizer
+# h is the history
+# i is the index of inst in the history where jump occurs
+def jump(h, i):
+    return State(h[i])
+
+def jumpIfZero(h, i):
+    if st.reg.is_empty():
+        raise ValueError('invalid read on null reg')
+    if h[i].reg.val == 0:
+        return State(st=h[i])
+    else:
+        return State(st=h[-1])
+
+def jumpIfNegative(h, i):
+    if st.reg.is_empty():
+        raise ValueError('invalid read on null reg')
+    if h[i].reg.val < 0:
+        return State(st=h[i])
+    else:
+        return State(st=h[-1])
