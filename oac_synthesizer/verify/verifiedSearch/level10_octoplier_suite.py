@@ -1,6 +1,6 @@
 import sympy
 from oac_synthesizer.state import State
-from oac_synthesizer.synthesizer import verifiedSearch
+from oac_synthesizer.verifiedSynthesizer import verifiedSearch
 import oac_synthesizer.instructions as instructions
 from pprint import pprint
 

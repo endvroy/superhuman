@@ -28,26 +28,6 @@ def stackSearch(initial_st, instSet, depth, output):
                 yield candidate
 
 
-def verifiedSearch(initial_st, instSet, depth, output):
-    stacks = [{} for _ in range(depth + 1)]
-    stacks[0][initial_st] = [BeamState(initial_st, None, None, None)]
-
-    for i, stack in enumerate(stacks[:-1]):
-        # sys.stderr.write("search depth : %d/%d, len = %d\n" % (i, depth, len(stack)))
-        for state in stack.keys():
-            for newSt, inst, args in generate_insts(state, instSet, output):
-                newBeamSt = BeamState(newSt, inst, args, stack[state])
-                if newSt not in stacks[i + 1]:
-                    stacks[i + 1][newSt] = [newBeamSt]
-
-    for st, final_states in stacks[-1].items():
-        if st.output != output:
-            continue
-        for final_st in final_states:
-            for candidate in extractInsts(final_st):
-                yield candidate
-
-
 def extractInsts(b_st):
     if not b_st.preds:
         yield []
@@ -62,25 +42,25 @@ def generate_add(st, output):
     if not st.reg.is_empty():
         for loc in range(len(st.mem)):
             if not st.mem[loc].is_empty():
-                yield (instructions.add(st, loc), [loc])
+                yield (instructions.add(st, loc), (loc,))
 
 
 def generate_sub(st, output):
     if not st.reg.is_empty():
         for loc in range(len(st.mem)):
             if not st.mem[loc].is_empty():
-                yield (instructions.sub(st, loc), [loc])
+                yield (instructions.sub(st, loc), (loc,))
 
 
 def generate_inbox(st, output):
     if st.input:
-        yield (instructions.inbox(st), [])
+        yield (instructions.inbox(st), ())
 
 
 def generate_outbox(st, output):
     if not st.reg.is_empty() and len(st.output) < len(output):
         if st.reg.val == output[len(st.output)]:
-            yield (instructions.outbox(st), [])
+            yield (instructions.outbox(st), ())
 
 
 def generate_copyTo(st, output):
@@ -95,14 +75,14 @@ def generate_copyTo(st, output):
             elif not st.mem[loc].used:
                 # only copy to used loc
                 continue
-            yield (instructions.copyTo(st, loc), [loc])
+            yield (instructions.copyTo(st, loc), (loc,))
 
 
 def generate_copyFrom(st, output):
     if st.reg.is_empty() or st.reg.used:
         for loc in range(len(st.mem)):
             if not st.mem[loc].is_empty():
-                yield (instructions.copyFrom(st, loc), [loc])
+                yield (instructions.copyFrom(st, loc), (loc,))
 
 
 inst_generator_map = {
@@ -133,4 +113,6 @@ if __name__ == '__main__':
                      instructions.outbox],
                     13,
                     (3 * 40,))
-    print(list(x))
+    from pprint import pprint
+
+    pprint(list(x))

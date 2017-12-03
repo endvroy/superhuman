@@ -38,7 +38,7 @@ class Cell(object):
     # helper methods
     @staticmethod
     def cell_array(a, used=False):
-        return tuple([Cell(v, used) for v in a])
+        return tuple(Cell(v, used) for v in a)
 
     @staticmethod
     def copy(c):
@@ -50,7 +50,7 @@ class Cell(object):
         return color + str(self.val) + "\033[0m"
 
     def __repr__(self):
-        return str(self)
+        return 'Cell(val={}, used={})'.format(self.val, self.used)
 
 
 class State(object):
@@ -65,8 +65,8 @@ class State(object):
         else:
             self.reg = Cell(reg)
             self.mem = Cell.cell_array(mem)
-            self.input = Input
-            self.output = output
+            self.input = tuple(Input)
+            self.output = tuple(output)
 
     def __hash__(self):
         return hash((self.input, self.reg, self.mem, self.output))
@@ -82,4 +82,7 @@ class State(object):
         return str(self.input) + ' ' + str(self.reg) + ' ' + str(self.mem) + ' ' + str(self.output)
 
     def __repr__(self):
-        return str(self)
+        return 'State(Input={}, reg={}, mem={}, output={})'.format(self.input,
+                                                                   self.reg,
+                                                                   self.mem,
+                                                                   self.output)
