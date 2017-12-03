@@ -1,7 +1,7 @@
 import sys
-import instructions
+import oac_synthesizer.instructions as instructions
 from collections import namedtuple
-from state import State, Cell
+from oac_synthesizer.state import State, Cell
 
 BeamState = namedtuple('BeamState', 'st, inst, args, preds')
 
@@ -15,10 +15,10 @@ def stackSearch(initial_st, instSet, depth, output):
         for state in stack.keys():
             for newSt, inst, args in generate_insts(state, instSet, output):
                 newBeamSt = BeamState(newSt, inst, args, stack[state])
-                if newSt in stacks[i+1]:
-                    stacks[i+1][newSt].append(newBeamSt)
+                if newSt in stacks[i + 1]:
+                    stacks[i + 1][newSt].append(newBeamSt)
                 else:
-                    stacks[i+1][newSt] = [newBeamSt]
+                    stacks[i + 1][newSt] = [newBeamSt]
 
     for st, final_states in stacks[-1].items():
         if st.output != output:
@@ -35,6 +35,7 @@ def extractInsts(b_st):
         for pred in b_st.preds:
             for insts in extractInsts(pred):
                 yield insts + [(b_st.inst, b_st.args)]
+
 
 # inst generators
 def generate_add(st, output):
@@ -99,3 +100,17 @@ def generate_insts(st, instSet, output):
         generator = inst_generator_map[inst]
         for newSt, args in generator(st, output):
             yield (newSt, inst, args)
+
+
+if __name__ == '__main__':
+    initial_st = State((3,), None, [None], ())
+    x = stackSearch(initial_st,
+                    [instructions.add,
+                     instructions.sub,
+                     instructions.copyFrom,
+                     instructions.copyTo,
+                     instructions.inbox,
+                     instructions.outbox],
+                    13,
+                    (3 * 40,))
+    print(list(x))
