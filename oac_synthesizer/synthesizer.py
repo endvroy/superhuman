@@ -28,6 +28,26 @@ def stackSearch(initial_st, instSet, depth, output):
                 yield candidate
 
 
+def verifiedSearch(initial_st, instSet, depth, output):
+    stacks = [{} for _ in range(depth + 1)]
+    stacks[0][initial_st] = [BeamState(initial_st, None, None, None)]
+
+    for i, stack in enumerate(stacks[:-1]):
+        # sys.stderr.write("search depth : %d/%d, len = %d\n" % (i, depth, len(stack)))
+        for state in stack.keys():
+            for newSt, inst, args in generate_insts(state, instSet, output):
+                newBeamSt = BeamState(newSt, inst, args, stack[state])
+                if newSt not in stacks[i + 1]:
+                    stacks[i + 1][newSt] = [newBeamSt]
+
+    for st, final_states in stacks[-1].items():
+        if st.output != output:
+            continue
+        for final_st in final_states:
+            for candidate in extractInsts(final_st):
+                yield candidate
+
+
 def extractInsts(b_st):
     if not b_st.preds:
         yield []
