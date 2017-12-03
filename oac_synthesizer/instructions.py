@@ -61,23 +61,20 @@ def outbox(st):
 # jump instructions used in the synthesizer
 # h is the history
 # i is the index of inst in the history where jump occurs
-def jump(h, i):
-    return State(h[i])
+def jump(st, i):
+    return State(st=st)
 
 
-def jumpIfZero(h, i):
+def jumpIfZero(st, i):
     if st.reg.is_empty():
         raise ValueError('invalid read on null reg')
-    if h[i].reg.val == 0:
-        return State(st=h[i])
-    else:
-        return State(st=h[-1])
+    return State(st=st)
 
 
-def jumpIfNegative(h, i):
+def jumpIfNegative(st, i):
     if st.reg.is_empty():
         raise ValueError('invalid read on null reg')
-    if h[i].reg.val < 0:
-        return State(st=h[i])
-    else:
-        return State(st=h[-1])
+    return State(st=st)
+
+def jumpFrom(st, i):
+    return State(st=st)

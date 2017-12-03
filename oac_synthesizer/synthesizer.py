@@ -100,19 +100,3 @@ def generate_insts(st, instSet, output):
         generator = inst_generator_map[inst]
         for newSt, args in generator(st, output):
             yield (newSt, inst, args)
-
-
-if __name__ == '__main__':
-    initial_st = State((3,), None, [None], ())
-    x = stackSearch(initial_st,
-                    [instructions.add,
-                     instructions.sub,
-                     instructions.copyFrom,
-                     instructions.copyTo,
-                     instructions.inbox,
-                     instructions.outbox],
-                    13,
-                    (3 * 40,))
-    from pprint import pprint
-
-    pprint(list(x))
