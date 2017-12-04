@@ -5,7 +5,7 @@ import sympy
 x, y = sympy.symbols('x y')
 
 initial_state = State([x, y], [])
-desired_output = State([x + y])
+desired_output = [x + y]
 
 
 def criteria(end_state: State):

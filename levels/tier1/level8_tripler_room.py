@@ -5,7 +5,7 @@ import sympy
 x = sympy.symbols('x')
 
 initial_state = State([x], [])
-desired_output = State([3 * x])
+desired_output = [3 * x]
 
 
 def criteria(end_state: State):

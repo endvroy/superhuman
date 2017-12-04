@@ -4,3 +4,6 @@ test.rkt
 compiled/
 *.pyc
 \.vscode
+\.idea
+
+\.DS_Store
