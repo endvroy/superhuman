@@ -7,7 +7,7 @@ class LineTuple:
     # A LineTuple object represents a line of code
     # A LineTuple should be like "operator op1 op2 op3"
     # op1 = CopyFrom, op2 = loc op3 = CopyTo
-    def __init__(self, operator=None, state=None, copyFrom=0, loc=-1, copyTo=-1):
+    def __init__(self, operator=None, state=None, copyFrom=0, loc=-1, copyTo=0):
         if operator is None or state is None:
             raise ValueError('Empty operator or state')
         self.hasNext = False
@@ -22,6 +22,8 @@ class LineTuple:
             self.state = op.sub(state, copyFrom, loc, copyTo)
         elif operator == "outbox":
             self.state = op.outbox(state, copyFrom)
+        elif operator == "inbox":
+            self.state = op.inbox(state, copyTo)
         else:
             raise ValueError("Invalid operator: " + operator)
 
@@ -35,16 +37,19 @@ class LineTuple:
             return (op.sub, [self.copyFrom, self.loc, self.copyTo])
         elif operator == "outbox":
             return (op.outbox, [self.copyFrom])
+        elif operator == "inbox":
+            return (op.inbox, [self.copyTo])
         else:
             raise ValueError("Invalid operator: " + operator)
 
     def __str__(self):
         # return str(self.reg) + ' ' + str(self.mem) + ' ' + str(self.output)
-        if self.operator is not "outbox":
-            return str(self.hasNext) + ' ' + self.operator + ' ' + str(self.copyFrom) + ' ' + str(self.loc) + ' ' + str(
-                self.copyTo) + ' ' + str(self.state)
-        else:
+        if self.operator is "outbox":
             return str(self.hasNext) + ' ' + self.operator + ' ' + str(self.copyFrom) + ' ' + str(self.state)
+        elif self.operator is "inbox":
+            return str(self.hasNext) + ' ' + self.operator + ' ' + str(self.copyTo) + ' ' + str(self.state)
+        else:
+            return str(self.hasNext) + ' ' + self.operator + ' ' + str(self.copyFrom) + ' ' + str(self.loc) + ' ' + str(self.copyTo) + ' ' + str(self.state)
 
     def __repr__(self):
         return str(self)

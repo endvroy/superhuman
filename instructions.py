@@ -14,7 +14,7 @@ def add(st, copyFrom, loc, copyTo):
         raise ValueError('invalid mem read at loc: ' + str(loc))
     newMem = st.mem.copy()
     newMem[copyTo] = newMem[copyFrom] + newMem[loc]
-    return State(newMem, st.output)
+    return State(mem=newMem, output=st.output)
 
 
 def sub(st, copyFrom, loc, copyTo):
@@ -28,7 +28,7 @@ def sub(st, copyFrom, loc, copyTo):
         raise ValueError('invalid mem read at loc: ' + str(loc))
     newMem = st.mem.copy()
     newMem[copyTo] = newMem[copyFrom] - newMem[loc]
-    return State(newMem, st.output)
+    return State(mem=newMem, output=st.output)
 
 
 # def copyFrom(st, loc):
@@ -50,10 +50,19 @@ def sub(st, copyFrom, loc, copyTo):
 def outbox(st, loc):
     # if st.reg is None:
     #     raise ValueError('invalid read on null reg')
-    if 0 < loc > len(st.mem) or st.mem[loc] == None:
+    if 0 > loc > len(st.mem) or st.mem[loc] == None:
         raise ValueError('invalid mem read at loc: ' + str(loc))
     newSt = st.copy()
     newSt.output.append(st.mem[loc])
+    return newSt
+
+def inbox(st, loc):
+    if 0 > loc > len(st.mem):
+        raise ValueError('invalid mem read at loc: ' + str(loc))
+    if len(st.input) <= 0:
+        raise ValueError('Inbox empty')
+    newSt = st.copy()
+    newSt.mem[loc] = newSt.input.pop(0)
     return newSt
 
 
@@ -77,15 +86,17 @@ def outbox(st, loc):
 
 
 if __name__ == '__main__':
-    st = State([2, 3, 4], [])
+    st = State([1,2,3], [None, None, None], [])
     print(st)
-    st = add(st, 0, 2, 1)
+    st = inbox(st, 0)
     print(st)
-    st = sub(st, 0, 1, 2)
+    st = outbox(st, 0)
     print(st)
-    st = outbox(st, 2)
+    st = inbox(st, 0)
     print(st)
-    st = outbox(st, 1)
+    st = outbox(st, 0)
+    print(st)
+    st = inbox(st, 0)
     print(st)
     st = outbox(st, 0)
     print(st)
