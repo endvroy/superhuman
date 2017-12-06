@@ -1,7 +1,7 @@
 import sys
-import oac_synthesizer.instructions as instructions
+import instructions as instructions
 from collections import namedtuple
-from oac_synthesizer.state import State, Cell
+from state import State, Cell
 
 BeamState = namedtuple('BeamState', 'st, inst, args, preds')
 

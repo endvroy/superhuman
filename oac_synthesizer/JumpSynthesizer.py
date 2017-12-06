@@ -1,33 +1,57 @@
 import sys
 import instructions
+from copy import deepcopy
 from collections import namedtuple
 from state import State, Cell
+import pprint
+pp = pprint.PrettyPrinter(indent=4)
 
-BeamState = namedtuple('BeamState', 'st, inst, args, preds')
 
-def stackSearchWithJump(initial_sts, instSet, depth, outputs):
-    frontier = [BeamState(tuple(initial_sts), None, None, None)]
+BeamState = namedtuple('BeamState', 'st, inst, args, jump_locs, preds')
+
+def stackSearchWithJump(initial_sts, instSet, jumpInstSet, depth, outputs):
+    frontier = [BeamState(tuple(initial_sts), None, None, [], None)]
 
     for i in range(depth):
-        #sys.stderr.write("search depth : %d/%d, len = %d\n" % (i, depth, len(frontier)))
+        sys.stderr.write("search depth : %d/%d, len = %d\n" % (i, depth, len(frontier)))
+        '''
+        for b_st in frontier:
+            pp.pprint(extract(b_st))
+            print
+        print '-------------------------'
+        '''
         new_frontier = []
         for b_st in frontier:
             state = b_st.st
-            for newSt, inst, args in generate_insts(state, instSet):
-                new_frontier.append(BeamState(newSt, inst, args, b_st))
+            for newSt, inst, args in generate_insts(b_st, instSet):
+                #print newSt, inst, args
+                new_frontier.append(BeamState(newSt, inst, args, deepcopy(b_st.jump_locs), b_st))
+            # synthesize jumps
+            for newSt, inst, args, new_jump_locs in generate_jumps(b_st, jumpInstSet):
+                #print newSt, inst, args
+                new_frontier.append(BeamState(newSt, inst, args, new_jump_locs, b_st))
         frontier = new_frontier
-
+        '''
+    for b_st in frontier:
+        pp.pprint(extract(b_st))
+        print
+    print '-------------------------'
+    '''
     # filter out states with inconsistent inputs
     for b_st in frontier:
+        #print map(lambda st: st.output, b_st.st)
         if map(lambda st: st.output, b_st.st) == outputs:
-            yield extract(b_st)
+            _, all_insts = get_all_insts(b_st)
+            yield map(lambda h: (h.inst, h.args), all_insts)
+            #yield all_insts
 
 def extract(st):
     return extract(st.preds)+[(st.inst, st.args)] if st.preds else []
 
 
 # inst generators
-def generate_add(states):
+def generate_add(b_st):
+    states = b_st.st
     # check if all reg is non empty
     mem_len = len(states[0].mem)
     if not any(map(lambda st: st.reg.is_empty(), states)):
@@ -35,22 +59,26 @@ def generate_add(states):
             if not any(map(lambda st: st.mem[loc].is_empty(), states)):
                 yield (map(lambda st: instructions.add(st, loc), states), [loc])
 
-def generate_sub(states):
+def generate_sub(b_st):
+    states = b_st.st
     mem_len = len(states[0].mem)
     if not any(map(lambda st: st.reg.is_empty(), states)):
         for loc in range(mem_len):
             if not any(map(lambda st: st.mem[loc].is_empty(), states)):
                 yield (map(lambda st: instructions.sub(st, loc), states), [loc])
 
-def generate_inbox(states):
+def generate_inbox(b_st):
+    states = b_st.st
     if all(map(lambda st:st.input, states)):
         yield (map(lambda st: instructions.inbox(st), states), [])
 
-def generate_outbox(states):
+def generate_outbox(b_st):
+    states = b_st.st
     if not any(map(lambda st: st.reg.is_empty(), states)):
         yield (map(lambda st: instructions.outbox(st), states), [])
 
-def generate_copyTo(states):
+def generate_copyTo(b_st):
+    states = b_st.st
     mem_len = len(states[0].mem)
     if not any(map(lambda st: st.reg.is_empty(), states)):
         empty_slot_used = False
@@ -63,18 +91,142 @@ def generate_copyTo(states):
             # maybe do something with used bit here
             yield (map(lambda st: instructions.copyTo(st, loc), states), [loc])
 
-def generate_copyFrom(states):
+def generate_copyFrom(b_st):
+    states = b_st.st
     mem_len = len(states[0].mem)
     for loc in range(mem_len):
         if not any(map(lambda st:st.mem[loc].is_empty(), states)):
             yield (map(lambda st:instructions.copyFrom(st, loc), states), [loc])
 
-
-def generate_insts(st, instSet):
+def generate_insts(b_st, instSet):
     for inst in instSet:
         generator = inst_generator_map[inst]
-        for newSt, args in generator(st):
+        for newSt, args in generator(b_st):
             yield (newSt, inst, args)
+
+#----------------------------------------------------
+# generate all possible jumps
+
+h_tuple = namedtuple('History', 'inst, args, st')
+jumpFromFuncs = {
+    instructions.jump : instructions.jumpFrom,
+    instructions.jumpIfZero : instructions.jumpIfZeroFrom,
+    instructions.jumpIfNegative : instructions.jumpIfNegativeFrom}
+jumpFuncs = {
+    instructions.jumpFrom : instructions.jump,
+    instructions.jumpIfZeroFrom : instructions.jumpIfZero,
+    instructions.jumpIfNegativeFrom : instructions.jumpIfNegative
+}
+jumpConditions = {
+    instructions.jump : lambda st: True,
+    instructions.jumpIfZero : lambda st: st.reg.val == 0,
+    instructions.jumpIfNegative : lambda st: st.reg.val < 0
+}
+
+def generate_jumps(b_st, jumpInstSet):
+    for jumpInst in jumpInstSet:
+        generator = inst_generator_map[jumpInst]
+        for newSt, args, new_jump_locs in generator(b_st, jumpInst):
+            res = (newSt, jumpFromFuncs[jumpInst], args, new_jump_locs)
+            yield res
+
+
+def jump_generator(b_st, jump_type):
+    # get jump jump condition
+    jump_cond = jumpConditions[jump_type]
+    # restore full history from b_st
+    initial_st, prev_insts = get_all_insts(b_st)
+    '''
+    print initial_st
+    pp.pprint(prev_insts)
+    print
+    '''
+    # initialize res
+    generatedJumps = []
+    for i in range(len(prev_insts)+1):
+        generatedJumps.append([(), [], getNewJumpLocs(b_st, i)])
+
+    # jump from other positions
+    for k in range(len(initial_st)):
+        current_st = initial_st[k]
+        last_st = b_st.st[k]
+        nextJumpPos = -1
+        for i in range(len(prev_insts)):
+            # decide jumped state
+            if i <= nextJumpPos:
+                generatedJumps[i][0] += (last_st,)
+                continue
+            elif not current_st.reg.is_empty() or jump_type == instructions.jump:
+                # if jump cond is satisfied, jump
+                jumpedSt = current_st if jump_cond(current_st) else last_st
+                generatedJumps[i][0] += (jumpedSt,)
+
+            # update current st
+            # if current inst is a jump, jump if possible
+            current_inst = prev_insts[i].inst
+            if current_inst in jumpFuncs.values():
+                # current is not changed
+                # update nextJumpPos if jump condition is True
+                if jumpConditions[current_inst](current_st):
+                    nextJumpPos = prev_insts[i].args[0]
+            else:
+                current_st = prev_insts[i].st[k]
+
+        generatedJumps[-1][0] = b_st.st
+
+    # output result
+    for j in generatedJumps:
+        # yield something
+        pass
+
+    res = map(tuple, filter(lambda j: len(j[0]) == len(initial_st), generatedJumps))
+    return res
+
+def getNewJumpLocs(b_st, loc):
+    return map(lambda x: x if x < loc else x+1, b_st.jump_locs) + [loc]
+
+
+
+
+def extract_history(b_st):
+    return extract_history(b_st.preds)+[h_tuple(b_st.inst, deepcopy(b_st.args), b_st.st)] if b_st.preds else [b_st.st]
+
+def get_all_insts(b_st):
+    history = extract_history(b_st)
+    initial_st = history[0]
+    history = history[1:]
+
+    '''
+    print 'locs: ', b_st.jump_locs
+    print 'history'
+    pp.pprint(history)
+    print
+'''
+    # get all jumpFroms in history=
+    # put jump loc into history
+    i, j = 0, 0
+    all_jumps = []
+    while i < len(history):
+        if history[i].inst in jumpFromFuncs.values():
+            all_jumps.append(history[i])
+            history[i].args.append(b_st.jump_locs[j])
+            j += 1
+        i += 1
+
+    # number jumps should equal jump_locs
+    assert len(all_jumps) == len(b_st.jump_locs)
+
+    # insert jumps into instructions
+    all_jumps.sort(key=lambda h: h.args)
+    for jump in all_jumps:
+        history.insert(jump.args[0], h_tuple(jumpFuncs[jump.inst], [], None))
+
+    # add jump locs
+    for i, h in enumerate(history):
+        if h.inst in jumpFromFuncs.values():
+            history[h.args[0]].args.append(i)
+
+    return (initial_st, history)
 
 inst_generator_map = {
     instructions.add : generate_add,
@@ -82,5 +234,8 @@ inst_generator_map = {
     instructions.copyTo : generate_copyTo,
     instructions.copyFrom : generate_copyFrom,
     instructions.inbox : generate_inbox,
-    instructions.outbox : generate_outbox
+    instructions.outbox : generate_outbox,
+    instructions.jump : jump_generator,
+    instructions.jumpIfZero : jump_generator,
+    instructions.jumpIfNegative: jump_generator
 }

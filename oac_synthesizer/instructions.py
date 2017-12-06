@@ -1,6 +1,6 @@
 # define instructions used in Human Resource Machine Game
 from enum import Enum
-from oac_synthesizer.state import State, Cell
+from state import State, Cell
 
 
 def add(st, loc):
@@ -77,4 +77,10 @@ def jumpIfNegative(st, i):
     return State(st=st)
 
 def jumpFrom(st, i):
+    return State(st=st)
+
+def jumpIfZeroFrom(st, i):
+    return State(st=st)
+
+def jumpIfNegativeFrom(st, i):
     return State(st=st)
