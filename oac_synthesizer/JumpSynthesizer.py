@@ -14,12 +14,6 @@ def stackSearchWithJump(initial_sts, instSet, jumpInstSet, depth, outputs):
 
     for i in range(depth):
         sys.stderr.write("search depth : %d/%d, len = %d\n" % (i, depth, len(frontier)))
-        '''
-        for b_st in frontier:
-            pp.pprint(extract(b_st))
-            print
-        print '-------------------------'
-        '''
         new_frontier = []
         for b_st in frontier:
             state = b_st.st
@@ -31,23 +25,13 @@ def stackSearchWithJump(initial_sts, instSet, jumpInstSet, depth, outputs):
                 #print newSt, inst, args
                 new_frontier.append(BeamState(newSt, inst, args, new_jump_locs, b_st))
         frontier = new_frontier
-        '''
-    for b_st in frontier:
-        pp.pprint(extract(b_st))
-        print
-    print '-------------------------'
-    '''
+
     # filter out states with inconsistent inputs
     for b_st in frontier:
         #print map(lambda st: st.output, b_st.st)
         if map(lambda st: st.output, b_st.st) == outputs:
             _, all_insts = get_all_insts(b_st)
             yield map(lambda h: (h.inst, h.args), all_insts)
-            #yield all_insts
-
-def extract(st):
-    return extract(st.preds)+[(st.inst, st.args)] if st.preds else []
-
 
 # inst generators
 def generate_add(b_st):
@@ -127,20 +111,14 @@ def generate_jumps(b_st, jumpInstSet):
     for jumpInst in jumpInstSet:
         generator = inst_generator_map[jumpInst]
         for newSt, args, new_jump_locs in generator(b_st, jumpInst):
-            res = (newSt, jumpFromFuncs[jumpInst], args, new_jump_locs)
-            yield res
-
+            yield (newSt, jumpFromFuncs[jumpInst], args, new_jump_locs)
 
 def jump_generator(b_st, jump_type):
     # get jump jump condition
     jump_cond = jumpConditions[jump_type]
     # restore full history from b_st
     initial_st, prev_insts = get_all_insts(b_st)
-    '''
-    print initial_st
-    pp.pprint(prev_insts)
-    print
-    '''
+
     # initialize res
     generatedJumps = []
     for i in range(len(prev_insts)+1):
@@ -196,12 +174,6 @@ def get_all_insts(b_st):
     initial_st = history[0]
     history = history[1:]
 
-    '''
-    print 'locs: ', b_st.jump_locs
-    print 'history'
-    pp.pprint(history)
-    print
-'''
     # get all jumpFroms in history=
     # put jump loc into history
     i, j = 0, 0
