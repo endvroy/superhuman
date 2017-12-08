@@ -54,7 +54,8 @@ def outbox(st):
         raise ValueError('invalid read on null reg')
     newSt = State(st=st)
     newSt.output += (st.reg.val,)
-    newSt.reg.used = True
+    newSt.reg.value = None
+    newSt.reg.used = False
     return newSt
 
 

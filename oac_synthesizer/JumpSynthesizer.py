@@ -15,7 +15,9 @@ def stackSearchWithJump(initial_sts, instSet, jumpInstSet, depth, outputs):
     for i in range(depth):
         sys.stderr.write("search depth : %d/%d, len = %d\n" % (i, depth, len(frontier)))
         new_frontier = []
-        for b_st in frontier:
+        for j, b_st in enumerate(frontier):
+            if j % 10000 == 0:
+                sys.stderr.write("\tsearch: %d/%d\n" % (j, len(frontier)))
             state = b_st.st
             for newSt, inst, args in generate_insts(b_st, instSet):
                 #print newSt, inst, args
@@ -32,6 +34,29 @@ def stackSearchWithJump(initial_sts, instSet, jumpInstSet, depth, outputs):
         if map(lambda st: st.output, b_st.st) == outputs:
             _, all_insts = get_all_insts(b_st)
             yield map(lambda h: (h.inst, h.args), all_insts)
+
+def DfsWithJump(initial_sts, instSet, jumpInstSet, depth, outputs):
+    b_st = BeamState(tuple(initial_sts), None, None, [], None)
+    return dfs(b_st, instSet, jumpInstSet, 0, depth, outputs)
+
+def dfs(b_st, instSet, jumpInstSet, i, depth, outputs):
+    if i == depth:
+        # output insts with consistent output
+        if map(lambda st: st.output, b_st.st) == outputs:
+            _, all_insts = get_all_insts(b_st)
+            yield map(lambda h: (h.inst, h.args), all_insts)
+    else:
+        for newSt, inst, args in generate_insts(b_st, instSet):
+            #print newSt, inst, args
+            new_b_st = BeamState(newSt, inst, args, deepcopy(b_st.jump_locs), b_st)
+            for insts in dfs(new_b_st, instSet, jumpInstSet, i+1, depth, outputs):
+                yield insts
+        # synthesize jumps
+        for newSt, inst, args, new_jump_locs in generate_jumps(b_st, jumpInstSet):
+            #print newSt, inst, args
+            new_b_st = BeamState(newSt, inst, args, new_jump_locs, b_st)
+            for insts in dfs(new_b_st, instSet, jumpInstSet, i+1, depth, outputs):
+                yield insts
 
 # inst generators
 def generate_add(b_st):
@@ -108,16 +133,15 @@ jumpConditions = {
 }
 
 def generate_jumps(b_st, jumpInstSet):
+    initial_st, prev_insts = get_all_insts(b_st)
     for jumpInst in jumpInstSet:
         generator = inst_generator_map[jumpInst]
-        for newSt, args, new_jump_locs in generator(b_st, jumpInst):
+        for newSt, args, new_jump_locs in generator(b_st, jumpInst, initial_st, prev_insts):
             yield (newSt, jumpFromFuncs[jumpInst], args, new_jump_locs)
 
-def jump_generator(b_st, jump_type):
+def jump_generator(b_st, jump_type, initial_st, prev_insts):
     # get jump jump condition
     jump_cond = jumpConditions[jump_type]
-    # restore full history from b_st
-    initial_st, prev_insts = get_all_insts(b_st)
 
     # initialize res
     generatedJumps = []
