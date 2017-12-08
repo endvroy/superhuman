@@ -3,9 +3,6 @@ import instructions
 from copy import deepcopy
 from collections import namedtuple
 from state import State, Cell
-import pprint
-pp = pprint.PrettyPrinter(indent=4)
-
 
 BeamState = namedtuple('BeamState', 'st, inst, args, jump_locs, preds')
 
@@ -20,17 +17,14 @@ def stackSearchWithJump(initial_sts, instSet, jumpInstSet, depth, outputs):
                 sys.stderr.write("\tsearch: %d/%d\n" % (j, len(frontier)))
             state = b_st.st
             for newSt, inst, args in generate_insts(b_st, instSet):
-                #print newSt, inst, args
                 new_frontier.append(BeamState(newSt, inst, args, deepcopy(b_st.jump_locs), b_st))
             # synthesize jumps
             for newSt, inst, args, new_jump_locs in generate_jumps(b_st, jumpInstSet):
-                #print newSt, inst, args
                 new_frontier.append(BeamState(newSt, inst, args, new_jump_locs, b_st))
         frontier = new_frontier
 
     # filter out states with inconsistent inputs
     for b_st in frontier:
-        #print map(lambda st: st.output, b_st.st)
         if map(lambda st: st.output, b_st.st) == outputs:
             _, all_insts = get_all_insts(b_st)
             yield map(lambda h: (h.inst, h.args), all_insts)
@@ -47,13 +41,11 @@ def dfs(b_st, instSet, jumpInstSet, i, depth, outputs):
             yield map(lambda h: (h.inst, h.args), all_insts)
     else:
         for newSt, inst, args in generate_insts(b_st, instSet):
-            #print newSt, inst, args
             new_b_st = BeamState(newSt, inst, args, deepcopy(b_st.jump_locs), b_st)
             for insts in dfs(new_b_st, instSet, jumpInstSet, i+1, depth, outputs):
                 yield insts
         # synthesize jumps
         for newSt, inst, args, new_jump_locs in generate_jumps(b_st, jumpInstSet):
-            #print newSt, inst, args
             new_b_st = BeamState(newSt, inst, args, new_jump_locs, b_st)
             for insts in dfs(new_b_st, instSet, jumpInstSet, i+1, depth, outputs):
                 yield insts
