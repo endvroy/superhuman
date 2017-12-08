@@ -10,7 +10,7 @@ from linetuple import LineTuple
 from sympy import *
 
 beamState = namedtuple("beamState", "lineInst, backptr, score, order")
-backPtrs = {}
+# backPtrs = {}
 terminateStates = []
 
 def computePrefix(candidate, target):
@@ -21,7 +21,7 @@ def computePrefix(candidate, target):
             if candidate[i] != target[i]:
                 return []
         return candidate
-
+ 
 def scoreInstruction(state, target):
     # Linear combination of 
     return 0.0
@@ -59,14 +59,14 @@ def enumerateInstruction(state, instructions, lastLine, target):
     for inst in lineInsts:
         # Evaluate the order of the instruction
         # print('&& - ', lastLine)
-        if lastLine is not None:
-            # print ('&&& - ', lastLine)
-            for (lastState, lastIndex) in lastLine:
-                newOrder = evaluateRealInstOrder(inst, lastState)
-                stateTuples.append(beamState(inst, None, scoreInstruction(inst, target), newOrder))
-        else:
-            newOrder = evaluateRealInstOrder(inst, lastLine)
-            stateTuples.append(beamState(inst, None, scoreInstruction(inst, target), newOrder))
+        # if lastLine is not None:
+        #     # print ('&&& - ', lastLine)
+        #     for (lastState, lastIndex) in lastLine:
+        #         newOrder = evaluateRealInstOrder(inst, lastState)
+        #         stateTuples.append(beamState(inst, None, scoreInstruction(inst, target), newOrder))
+        # else:
+        # newOrder = evaluateRealInstOrder(inst, lastLine)
+        stateTuples.append(beamState(inst, lastLine, scoreInstruction(inst, target), 0))
     # if len(lineInsts) > 0 and lastLine is not []:
     #     lastLine.lineInst.hasNext = True
     return stateTuples
@@ -97,7 +97,7 @@ def printStack(stack):
     #     print (statekey)
     print('\n')
 
-def extractInst(beamstate, stackIndex=-1):
+def extractInst(beamstate):
     # return [] if beamstate is None else extractInst(beamstate.backptr) + [beamstate.lineInst]
     # print ("- ", beamstate)
     if beamstate is None:
@@ -105,11 +105,11 @@ def extractInst(beamstate, stackIndex=-1):
     else:
         result = []
         # print ((beamstate.lineInst.state, stackIndex))
-        backstates = backPtrs[(beamstate.lineInst.state, stackIndex)]
+        backstates = beamstate.backptr
         if backstates == []:
             result.append([beamstate.lineInst])
-        for (backState, backIndex) in backstates:
-            lastInsts = extractInst(backState, backState.order) 
+        for backState in backstates:
+            lastInsts = extractInst(backState) 
             for lastInst in lastInsts:
                 # print('*', lastInst)
                 result.append(lastInst + [beamstate.lineInst])
@@ -117,70 +117,37 @@ def extractInst(beamstate, stackIndex=-1):
 
 def beam(beginst, instSet, target, lineLimit, pruneLimit):
     # Key: current 
-    lineLimit += 1
     stacks = [{} for _ in range(lineLimit)]
 
-    enumInst = enumerateInstruction(beginst, instSet, None, target)
+    enumInst = enumerateInstruction(beginst, instSet, [], target)
     for newstate in enumInst:
         if newstate.order < lineLimit:
             if not shouldPrune(newstate.lineInst.state, target):
-                if newstate.lineInst.state not in stacks[newstate.order]:
-                    stacks[newstate.order][newstate.lineInst.state] = []
-                stacks[newstate.order][newstate.lineInst.state].append((newstate, 0))
-                if (newstate.lineInst.state, newstate.order) not in backPtrs:
-                    backPtrs[(newstate.lineInst.state, newstate.order)] = []
+                if newstate.lineInst.state not in stacks[0]:
+                    stacks[0][newstate.lineInst.state] = []
+                stacks[0][newstate.lineInst.state].append((newstate, 0))
+                # if (newstate.lineInst.state, 0) not in backPtrs:
+                #     backPtrs[(newstate.lineInst.state, 0)] = []
 
-    for i in range(lineLimit - 1): 
+    for i in range(lineLimit): 
         for statekey in stacks[i].keys():
-            # print ('^^ - ', stacks[i][statekey])
-            tempEqualList = {}
             enumInst = enumerateInstruction(statekey, instSet, stacks[i][statekey], target)
             for newstate in enumInst:
                 # print ('new state order: ', newstate.order, ' stack: ', i)
                 if not shouldTerminate(newstate.lineInst.state, target):
-                    if newstate.order < lineLimit and newstate.order != i:
+                    if i < lineLimit-1:
                         if not shouldPrune(newstate.lineInst.state, target):
-                            if newstate.lineInst.state not in stacks[newstate.order]:
-                                stacks[newstate.order][newstate.lineInst.state] = []
-                            stacks[newstate.order][newstate.lineInst.state].append((newstate, i))
-                            if (newstate.lineInst.state, newstate.order) not in backPtrs:
-                                backPtrs[(newstate.lineInst.state, newstate.order)] = []
-                            backPtrs[(newstate.lineInst.state, newstate.order)] += stacks[i][statekey]
-                    # TODO: Deal with equal cases
-                    elif newstate.order < lineLimit and newstate.order == i:
-                        if not shouldPrune(newstate.lineInst.state, target):
-                            if newstate.lineInst.state not in tempEqualList:
-                                tempEqualList[newstate.lineInst.state] = []
-                            tempEqualList[newstate.lineInst.state].append((newstate, i))
-                            if (newstate.lineInst.state, newstate.order) not in backPtrs:
-                                backPtrs[(newstate.lineInst.state, newstate.order)] = []
-                            backPtrs[(newstate.lineInst.state, newstate.order)] += stacks[i][statekey]
-                    else:
-                        pass
+                            if newstate.lineInst.state not in stacks[i+1]:
+                                stacks[i+1][newstate.lineInst.state] = []
+                            stacks[i+1][newstate.lineInst.state].append((newstate, i+1))
+                            # if (newstate.lineInst.state, i+1) not in backPtrs:
+                            #     backPtrs[(newstate.lineInst.state, i+1)] = []
+                            # backPtrs[(newstate.lineInst.state, i+1)] += stacks[i][statekey]
                 else:
                     terminateStates.append(newstate)
-                    if (newstate.lineInst.state, newstate.order) not in backPtrs:
-                        backPtrs[(newstate.lineInst.state, newstate.order)] = []
-                    backPtrs[(newstate.lineInst.state, newstate.order)] += stacks[i][statekey]
-
-            for statekey in tempEqualList.keys():
-                enumInst = enumerateInstruction(statekey, instSet, tempEqualList[statekey], target)
-                for newstate in enumInst:
-                    # print ('new state order: ', newstate.order, ' stack: ', i)
-                    if not shouldTerminate(newstate.lineInst.state, target):
-                        if newstate.order < lineLimit:
-                            if not shouldPrune(newstate.lineInst.state, target):
-                                if newstate.lineInst.state not in stacks[newstate.order]:
-                                    stacks[newstate.order][newstate.lineInst.state] = []
-                                stacks[newstate.order][newstate.lineInst.state].append((newstate, i))
-                                if (newstate.lineInst.state, newstate.order) not in backPtrs:
-                                    backPtrs[(newstate.lineInst.state, newstate.order)] = []
-                                backPtrs[(newstate.lineInst.state, newstate.order)] += tempEqualList[statekey]
-                    else:
-                        terminateStates.append(newstate)
-                        if (newstate.lineInst.state, newstate.order) not in backPtrs:
-                            backPtrs[(newstate.lineInst.state, newstate.order)] = []
-                        backPtrs[(newstate.lineInst.state, newstate.order)] += stacks[i][statekey]
+                    # if (newstate.lineInst.state, i+1) not in backPtrs:
+                    #     backPtrs[(newstate.lineInst.state, newstate.order)] = []
+                    # backPtrs[(newstate.lineInst.state, i+1)] += stacks[i][statekey]
 
     for i, stack in enumerate(stacks):
         print("stack " + str(i) + " :")
@@ -195,14 +162,15 @@ def beam(beginst, instSet, target, lineLimit, pruneLimit):
     # print('BackPtrs')
     # for statekey in backPtrs.keys():
     #     print (statekey, ': ', backPtrs[statekey])
-
-    insts = []
     for state in terminateStates:
-        print ("Extracting: ", state)
-        insts += extractInst(state, state.order)
-    print ('Insts:')
-    for inst in insts:
-        print (inst)
+        print ('$ ', state)
+    # insts = []
+    # for state in terminateStates:
+    #     print ("Extracting: ", state)
+    #     insts += extractInst(state)
+    # print ('Insts:')
+    # for inst in insts:
+    #     print (inst)
 
 if __name__ == '__main__':
     x = symbols('x')
